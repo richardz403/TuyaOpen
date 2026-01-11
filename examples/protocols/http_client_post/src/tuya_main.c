@@ -32,14 +32,14 @@
 *********************** macro define ***********************
 ***********************************************************/
 // Server configuration - HTTP server settings
-#define SERVER_HOST "your-server-ip"  // Server IP address, modify according to your actual server
+#define SERVER_HOST "192.168.34.231"  // Server IP address, modify according to your actual server
 #define SERVER_PORT 8080               // Server port number
 #define SERVER_PATH "/api/random"      // Server API endpoint path
 
 #ifdef ENABLE_WIFI
 // Wi-Fi configuration - Wi-Fi network settings
-#define DEFAULT_WIFI_SSID "your-ssid"        // Wi-Fi network name (SSID), modify according to your actual network
-#define DEFAULT_WIFI_PSWD "your-password"    // Wi-Fi password, modify according to your actual network
+#define DEFAULT_WIFI_SSID "JJ Lake"        // Wi-Fi network name (SSID), modify according to your actual network
+#define DEFAULT_WIFI_PSWD "20220315"    // Wi-Fi password, modify according to your actual network
 #endif
 
 #define HTTP_REQUEST_TIMEOUT 10 * 1000
@@ -67,6 +67,8 @@ static void __send_http_post_request(void)
         {.key = "User-Agent", .value = "TuyaOpen-HTTP-Client"}
     };
 
+
+    const char *text = lv_textarea_get_text(input_ta);
     const char *post_body = "{\"action\":\"get_random_string\"}";
 
     http_client_status_t http_status = http_client_request(

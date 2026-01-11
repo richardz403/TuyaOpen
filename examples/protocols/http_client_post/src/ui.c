@@ -30,6 +30,9 @@ static lv_obj_t *wifi_status_dot = NULL;     // Wi-Fi status indicator (top-righ
 static lv_obj_t *wifi_label = NULL;          // Wi-Fi text label (left of dot)
 static ui_button_click_cb_t button_click_cb = NULL;  // Button click callback
 
+//KEYBOARD
+static lv_obj_t *input_ta = NULL; // Pointer for the text input field
+
 /***********************************************************
 ********************** function define *********************
 ***********************************************************/
@@ -124,15 +127,40 @@ void ui_http_client_post_init(ui_button_click_cb_t button_cb)
     // Position "Receive" label at left-top of response_container
     lv_obj_align_to(receive_label, response_container, LV_ALIGN_OUT_TOP_LEFT, 0, -5);
 
-    // Send button (bottom of screen, slightly up)
-    send_button = lv_button_create(screen);
-    lv_obj_set_size(send_button, 150, 60);
-    lv_obj_align(send_button, LV_ALIGN_BOTTOM_MID, 0, -30);
-    lv_obj_add_event_cb(send_button, button_click_event_cb, LV_EVENT_CLICKED, NULL);
 
-    // Button label
-    lv_obj_t *button_label = lv_label_create(send_button);
-    lv_label_set_text(button_label, "Send Request");
+// KEYBOARD 
+
+// Create the Text Area (Input Field)
+input_ta = lv_textarea_create(screen);
+lv_obj_set_size(input_ta, LV_HOR_RES - 40, 40); // Set width based on screen resolution
+lv_obj_align(input_ta, LV_ALIGN_TOP_MID, 0, 50); // Position it below the Wi-Fi status
+lv_textarea_set_placeholder_text(input_ta, "Enter text...");
+lv_textarea_set_one_line(input_ta, true); // Keep it to a single line
+
+// Optional: Style it to match your other boxes
+lv_obj_set_style_border_width(input_ta, 2, 0);
+lv_obj_set_style_border_color(input_ta, lv_color_hex(0xCCCCCC), 0);
+
+// 1. Create the keyboard
+lv_obj_t * kb = lv_keyboard_create(screen);
+
+// 2. Link it to the text area you created earlier
+lv_keyboard_set_textarea(kb, input_ta);
+
+// 3. (Optional) Adjust the size so it doesn't cover the whole screen
+lv_obj_set_size(kb, LV_HOR_RES, LV_VER_RES / 2);
+
+
+// Send button (bottom of screen, slightly up)
+send_button = lv_button_create(screen);
+lv_obj_set_size(send_button, 150, 60);
+lv_obj_align(send_button, LV_ALIGN_BOTTOM_MID, 0, -30);
+lv_obj_add_event_cb(send_button, button_click_event_cb, LV_EVENT_CLICKED, NULL);
+
+// Button label
+lv_obj_t *button_label = lv_label_create(send_button);
+lv_label_set_text(button_label, "Hello Unos");
+
 #if defined(LV_FONT_MONTSERRAT_16) && (LV_FONT_MONTSERRAT_16 == 1)
     lv_obj_set_style_text_font(button_label, &lv_font_montserrat_16, 0);
 #else
@@ -143,7 +171,13 @@ void ui_http_client_post_init(ui_button_click_cb_t button_cb)
     lv_vendor_disp_unlock();
     lv_vendor_start(5, 1024 * 8);
     PR_NOTICE("LVGL display initialized");
+    
+
+
+
 }
+
+
 
 /**
  * @brief Update Wi-Fi status indicator
@@ -198,6 +232,18 @@ void ui_update_response_sending(void)
     lv_obj_set_style_text_color(response_label, lv_color_hex(0x0000FF), 0);
     lv_vendor_disp_unlock();
 }
+
+/**
+ * @brief Getter to allow other files to read the input text
+ */
+const char * ui_get_input_text(void)
+{
+    if (input_ta == NULL) {
+        return "";
+    }
+    return lv_textarea_get_text(input_ta);
+}
+
 
 #endif // ENABLE_LIBLVGL
 

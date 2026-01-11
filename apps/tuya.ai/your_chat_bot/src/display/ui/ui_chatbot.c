@@ -81,10 +81,10 @@ static void __ui_light_theme_init(APP_THEME_COLORS_T *theme)
         return;
     }
 
-    theme->background = lv_color_white();
+    theme->background = lv_color_black();
     theme->text = lv_color_black();
     theme->chat_background = lv_color_hex(0xE0E0E0);
-    theme->user_bubble = lv_color_hex(0x95EC69);
+    theme->user_bubble = lv_color_hex(0x1c90fc);
     theme->assistant_bubble = lv_color_white();
     theme->system_bubble = lv_color_hex(0xE0E0E0);
     theme->system_text = lv_color_hex(0x666666);

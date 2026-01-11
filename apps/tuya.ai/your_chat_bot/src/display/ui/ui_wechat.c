@@ -36,13 +36,19 @@
 ***********************typedef define***********************
 ***********************************************************/
 typedef struct {
-    lv_style_t style_avatar;
+lv_style_t style_avatar;
     lv_style_t style_ai_bubble;
     lv_style_t style_user_bubble;
+    lv_style_t style_btn; // New button style
 
     lv_obj_t *container;
     lv_obj_t *status_bar;
     lv_obj_t *content;
+    lv_obj_t *footer;        // New footer container
+    lv_obj_t *btn_yes;       // Yes button
+    lv_obj_t *btn_no;        // No button
+    lv_obj_t *btn_check;     // Check icon button
+
     lv_obj_t *emotion_label;
     lv_obj_t *chat_message_label;
     lv_obj_t *status_label;
@@ -99,28 +105,48 @@ int __ui_font_init(UI_FONT_T *ui_font)
     return 0;
 }
 
+// static void __ui_styles_init(void)
+// {
+//     lv_style_init(&sg_ui.ui.style_avatar);
+//     lv_style_set_radius(&sg_ui.ui.style_avatar, LV_RADIUS_CIRCLE);
+//     lv_style_set_bg_color(&sg_ui.ui.style_avatar, lv_palette_main(LV_PALETTE_GREY));
+//     lv_style_set_border_width(&sg_ui.ui.style_avatar, 1);
+//     lv_style_set_border_color(&sg_ui.ui.style_avatar, lv_palette_darken(LV_PALETTE_GREY, 2));
+
+//     lv_style_init(&sg_ui.ui.style_ai_bubble);
+//     lv_style_set_bg_color(&sg_ui.ui.style_ai_bubble, lv_color_white());
+//     lv_style_set_radius(&sg_ui.ui.style_ai_bubble, 15);
+//     lv_style_set_pad_all(&sg_ui.ui.style_ai_bubble, 12);
+//     lv_style_set_shadow_width(&sg_ui.ui.style_ai_bubble, 12);
+//     lv_style_set_shadow_color(&sg_ui.ui.style_ai_bubble, lv_color_hex(0xCCCCCC));
+
+//     lv_style_init(&sg_ui.ui.style_user_bubble);
+//     lv_style_set_bg_color(&sg_ui.ui.style_user_bubble, lv_palette_main(LV_PALETTE_GREEN));
+//     lv_style_set_text_color(&sg_ui.ui.style_user_bubble, lv_color_white());
+//     lv_style_set_radius(&sg_ui.ui.style_user_bubble, 15);
+//     lv_style_set_pad_all(&sg_ui.ui.style_user_bubble, 12);
+//     lv_style_set_shadow_width(&sg_ui.ui.style_user_bubble, 12);
+//     lv_style_set_shadow_color(&sg_ui.ui.style_user_bubble, lv_palette_darken(LV_PALETTE_GREEN, 2));
+// }
+
 static void __ui_styles_init(void)
 {
-    lv_style_init(&sg_ui.ui.style_avatar);
-    lv_style_set_radius(&sg_ui.ui.style_avatar, LV_RADIUS_CIRCLE);
-    lv_style_set_bg_color(&sg_ui.ui.style_avatar, lv_palette_main(LV_PALETTE_GREY));
-    lv_style_set_border_width(&sg_ui.ui.style_avatar, 1);
-    lv_style_set_border_color(&sg_ui.ui.style_avatar, lv_palette_darken(LV_PALETTE_GREY, 2));
-
+    // Clean, modern AI Bubble (Softened shadow)
     lv_style_init(&sg_ui.ui.style_ai_bubble);
     lv_style_set_bg_color(&sg_ui.ui.style_ai_bubble, lv_color_white());
-    lv_style_set_radius(&sg_ui.ui.style_ai_bubble, 15);
-    lv_style_set_pad_all(&sg_ui.ui.style_ai_bubble, 12);
-    lv_style_set_shadow_width(&sg_ui.ui.style_ai_bubble, 12);
-    lv_style_set_shadow_color(&sg_ui.ui.style_ai_bubble, lv_color_hex(0xCCCCCC));
+    lv_style_set_radius(&sg_ui.ui.style_ai_bubble, 12);
+    lv_style_set_pad_all(&sg_ui.ui.style_ai_bubble, 10);
+    lv_style_set_shadow_width(&sg_ui.ui.style_ai_bubble, 8);
+    lv_style_set_shadow_opa(&sg_ui.ui.style_ai_bubble, LV_OPA_10);
+    lv_style_set_shadow_color(&sg_ui.ui.style_ai_bubble, lv_color_hex(0x000000));
 
-    lv_style_init(&sg_ui.ui.style_user_bubble);
-    lv_style_set_bg_color(&sg_ui.ui.style_user_bubble, lv_palette_main(LV_PALETTE_GREEN));
-    lv_style_set_text_color(&sg_ui.ui.style_user_bubble, lv_color_white());
-    lv_style_set_radius(&sg_ui.ui.style_user_bubble, 15);
-    lv_style_set_pad_all(&sg_ui.ui.style_user_bubble, 12);
-    lv_style_set_shadow_width(&sg_ui.ui.style_user_bubble, 12);
-    lv_style_set_shadow_color(&sg_ui.ui.style_user_bubble, lv_palette_darken(LV_PALETTE_GREEN, 2));
+    // Modern Button Style
+    lv_style_init(&sg_ui.ui.style_btn);
+    lv_style_set_radius(&sg_ui.ui.style_btn, 8);
+    lv_style_set_border_width(&sg_ui.ui.style_btn, 0);
+    lv_style_set_bg_opa(&sg_ui.ui.style_btn, LV_OPA_COVER);
+    lv_style_set_text_font(&sg_ui.ui.style_btn, sg_ui.font.text);
+    lv_style_set_shadow_width(&sg_ui.ui.style_btn, 0); // Flat design look
 }
 
 static void __ui_notification_timeout_cb(lv_timer_t *timer)
@@ -134,33 +160,107 @@ static void __ui_notification_timeout_cb(lv_timer_t *timer)
 
 int ui_init(UI_FONT_T *ui_font)
 {
-    // Style init
+
+    __ui_font_init(ui_font);
     __ui_styles_init();
 
-    // Font init
-    __ui_font_init(ui_font);
+    lv_obj_t *screen = lv_scr_act();
+    lv_obj_set_style_bg_color(screen, lv_color_hex(0xF8F9FA), 0); // Modern off-white background
 
-    lv_obj_t *screen = lv_obj_create(lv_scr_act());
-    lv_obj_set_size(screen, LV_HOR_RES, LV_VER_RES);
-    lv_obj_set_style_bg_color(screen, lv_color_hex(0xF0F0F0), 0);
-    lv_obj_set_style_pad_all(screen, 0, 0);
-
-    lv_obj_set_style_text_font(screen, sg_ui.font.text, 0);
-    lv_obj_set_style_text_color(screen, lv_color_black(), 0);
-    lv_obj_set_scrollbar_mode(screen, LV_SCROLLBAR_MODE_OFF);
-    lv_obj_set_scroll_dir(screen, LV_DIR_VER);
-
-    // Container
+    // Main Container - Vertical Flex
     sg_ui.ui.container = lv_obj_create(screen);
     lv_obj_set_size(sg_ui.ui.container, LV_HOR_RES, LV_VER_RES);
+    lv_obj_set_flex_flow(sg_ui.ui.container, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_style_pad_all(sg_ui.ui.container, 0, 0);
     lv_obj_set_style_border_width(sg_ui.ui.container, 0, 0);
     lv_obj_set_style_pad_row(sg_ui.ui.container, 0, 0);
 
-    // Status bar
+    // 1. Status Bar (Top)
     sg_ui.ui.status_bar = lv_obj_create(sg_ui.ui.container);
-    lv_obj_set_size(sg_ui.ui.status_bar, LV_HOR_RES, 40);
-    lv_obj_set_style_bg_color(sg_ui.ui.status_bar, lv_palette_main(LV_PALETTE_GREEN), 0);
+    lv_obj_set_size(sg_ui.ui.status_bar, LV_PCT(100), 40);
+    lv_obj_set_style_bg_color(sg_ui.ui.status_bar, lv_color_hex(0xB0D4FF), 0); // Pastel blue
+    lv_obj_set_style_radius(sg_ui.ui.status_bar, 0, 0);
+    lv_obj_set_style_border_width(sg_ui.ui.status_bar, 0, 0);
+
+
+    // (Keep your existing status_label, network_label, etc. code here...)
+    // ...
+
+    // 2. Chat Content (Middle - Grows to fill space)
+    sg_ui.ui.content = lv_obj_create(sg_ui.ui.container);
+    lv_obj_set_width(sg_ui.ui.content, LV_PCT(100));
+    lv_obj_set_flex_grow(sg_ui.ui.content, 1); // This fills the middle
+    lv_obj_set_flex_flow(sg_ui.ui.content, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_style_pad_all(sg_ui.ui.content, 12, 0);
+    lv_obj_set_style_bg_opa(sg_ui.ui.content, 0, 0);
+    lv_obj_set_style_border_width(sg_ui.ui.content, 0, 0);
+    lv_obj_set_scrollbar_mode(sg_ui.ui.content, LV_SCROLLBAR_MODE_OFF);
+    lv_obj_set_scroll_dir(sg_ui.ui.content, LV_DIR_VER);
+
+    // 3. Footer (Bottom Button Bar)
+    sg_ui.ui.footer = lv_obj_create(sg_ui.ui.container);
+    lv_obj_set_size(sg_ui.ui.footer, LV_PCT(100), 60);
+    lv_obj_set_flex_flow(sg_ui.ui.footer, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(sg_ui.ui.footer, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    lv_obj_set_style_pad_gap(sg_ui.ui.footer, 15, 0);
+    lv_obj_set_style_bg_color(sg_ui.ui.footer, lv_color_white(), 0);
+    lv_obj_set_style_border_side(sg_ui.ui.footer, LV_BORDER_SIDE_TOP, 0);
+    lv_obj_set_style_border_width(sg_ui.ui.footer, 1, 0);
+    lv_obj_set_style_border_color(sg_ui.ui.footer, lv_palette_lighten(LV_PALETTE_GREY, 2), 0);
+
+    // Button: NO
+    sg_ui.ui.btn_no = lv_btn_create(sg_ui.ui.footer);
+    lv_obj_add_style(sg_ui.ui.btn_no, &sg_ui.ui.style_btn, 0);
+    lv_obj_set_style_bg_color(sg_ui.ui.btn_no, lv_palette_main(LV_PALETTE_RED), 0);
+    lv_obj_t *label_no = lv_label_create(sg_ui.ui.btn_no);
+    lv_label_set_text(label_no, "No");
+    lv_obj_center(label_no);
+
+    // Button: YES
+    sg_ui.ui.btn_yes = lv_btn_create(sg_ui.ui.footer);
+    lv_obj_add_style(sg_ui.ui.btn_yes, &sg_ui.ui.style_btn, 0);
+    lv_obj_set_style_bg_color(sg_ui.ui.btn_yes, lv_palette_main(LV_PALETTE_GREEN), 0);
+    lv_obj_t *label_yes = lv_label_create(sg_ui.ui.btn_yes);
+    lv_label_set_text(label_yes, "Yes");
+    lv_obj_center(label_yes);
+
+    // Button: CHECK (Icon)
+    sg_ui.ui.btn_check = lv_btn_create(sg_ui.ui.footer);
+    lv_obj_add_style(sg_ui.ui.btn_check, &sg_ui.ui.style_btn, 0);
+    lv_obj_set_style_bg_color(sg_ui.ui.btn_check, lv_palette_main(LV_PALETTE_BLUE), 0);
+    lv_obj_t *icon_check = lv_label_create(sg_ui.ui.btn_check);
+    lv_obj_set_style_text_font(icon_check, sg_ui.font.icon, 0);
+    lv_label_set_text(icon_check, LV_SYMBOL_OK); // Or FONT_AWESOME check icon
+    lv_obj_center(icon_check);
+
+
+    // Style init
+    // __ui_styles_init();
+
+    // Font init
+    // __ui_font_init(ui_font);
+
+    // lv_obj_t *screen = lv_obj_create(lv_scr_act());
+    // lv_obj_set_size(screen, LV_HOR_RES, LV_VER_RES);
+    // lv_obj_set_style_bg_color(screen, lv_color_hex(0xF0F0F0), 0);
+    // lv_obj_set_style_pad_all(screen, 0, 0);
+
+    // lv_obj_set_style_text_font(screen, sg_ui.font.text, 0);
+    // lv_obj_set_style_text_color(screen, lv_color_black(), 0);
+    // lv_obj_set_scrollbar_mode(screen, LV_SCROLLBAR_MODE_OFF);
+    // lv_obj_set_scroll_dir(screen, LV_DIR_VER);
+
+    // // Container
+    // sg_ui.ui.container = lv_obj_create(screen);
+    // lv_obj_set_size(sg_ui.ui.container, LV_HOR_RES, LV_VER_RES);
+    // lv_obj_set_style_pad_all(sg_ui.ui.container, 0, 0);
+    // lv_obj_set_style_border_width(sg_ui.ui.container, 0, 0);
+    // lv_obj_set_style_pad_row(sg_ui.ui.container, 0, 0);
+
+    // // Status bar
+    // sg_ui.ui.status_bar = lv_obj_create(sg_ui.ui.container);
+    // lv_obj_set_size(sg_ui.ui.status_bar, LV_HOR_RES, 40);
+    // lv_obj_set_style_bg_color(sg_ui.ui.status_bar, lv_palette_main(LV_PALETTE_GREEN), 0);
 
     // Status label
     sg_ui.ui.status_label = lv_label_create(sg_ui.ui.status_bar);
@@ -182,27 +282,16 @@ int ui_init(UI_FONT_T *ui_font)
     lv_label_set_text(sg_ui.ui.notification_label, "");
     lv_obj_add_flag(sg_ui.ui.notification_label, LV_OBJ_FLAG_HIDDEN);
 
-    // Emotion
+    // Emotion (AI Agent Icon - Heart/Stethoscope)
     sg_ui.ui.emotion_label = lv_label_create(sg_ui.ui.status_bar);
-    lv_obj_set_style_text_font(sg_ui.ui.emotion_label, sg_ui.font.icon, 0);
+    lv_obj_set_style_text_font(sg_ui.ui.emotion_label, sg_ui.font.emoji, 0);
     lv_obj_align(sg_ui.ui.emotion_label, LV_ALIGN_LEFT_MID, 0, 0);
-    lv_label_set_text(sg_ui.ui.emotion_label, FONT_AWESOME_AI_CHIP);
-
-    // content
-    sg_ui.ui.content = lv_obj_create(sg_ui.ui.container);
-    lv_obj_set_size(sg_ui.ui.content, LV_HOR_RES, LV_VER_RES - 40);
-    lv_obj_set_flex_flow(sg_ui.ui.content, LV_FLEX_FLOW_COLUMN);
-    lv_obj_set_style_pad_ver(sg_ui.ui.content, 8, 0);
-    lv_obj_set_style_pad_hor(sg_ui.ui.content, 10, 0);
-    lv_obj_align(sg_ui.ui.content, LV_ALIGN_BOTTOM_MID, 0, 0);
-    lv_obj_move_background(sg_ui.ui.content);
-
-    lv_obj_set_scroll_dir(sg_ui.ui.content, LV_DIR_VER);
-    lv_obj_set_scrollbar_mode(sg_ui.ui.content, LV_SCROLLBAR_MODE_OFF);
-    lv_obj_set_style_bg_opa(sg_ui.ui.content, LV_OPA_TRANSP, 0);
+    // Using loving emoji (heart-eyes, Unicode 0x1f60d) - replace with stethoscope-heart icon if available in font
+    lv_label_set_text(sg_ui.ui.emotion_label, "\xf0\x9f\x98\x8d"); // Loving/heart-eyes emoji Unicode: U+1F60D
 
     return 0;
 }
+
 
 void ui_set_user_msg(const char *text)
 {
